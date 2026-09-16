@@ -32,30 +32,107 @@ Check database security
 Fix bugs
 
 
-- Entity Relationship Diagrams
-- Concept to Implementation - Entity to Table; Atrributes to Columns
-- Naming Conventions
 
 
-Primary Key, Candidate Keys and Superkeys (Concentric circles analogy)
-Every table needs a primary key. It refres to one or more attributes that can be used to identify an individual row
-The values of the primary key must be unique to each individual
-A table can only have one primary key
-Pick the best candidate key as the primary key, if no good candiddate key is available, create a new attribute to serve as the primary key
-A candidate key is the smallest possible combination of attributes that can unqiely identify in a table
-A superkey is a set of one or more columns of a table that can uniquely identify a row in that table
+# Database Design Lifecycle
 
-How to pick the right primary key
-Pick the best candidate key as the primary key, if no good candiddate key is available, create a new attribute to serve as the primary key
+## Why Database Design Matters
 
-- Must be unique
-- Must be non-null
-- Must be stable
-- Must be simple
-- Must be short
-- Must be familiar
-- Must be preventing redundancy
+Good database design pays off through:
 
+- **Maintainability** — a well-structured schema is easier to update, debug, and extend without breaking existing functionality.
+- **Readability** — clear table/column names and relationships make the schema self-explanatory to any developer who joins later.
+- **Scalability** — a properly normalized, indexed design holds up as data volume and query load grow.
+- **Flexibility** — good design anticipates future changes (new features, new entities) without requiring a full rebuild.
 
-Composite Keys
-Surrogate Key - non-meaningful column 
+---
+
+## Overview of the Design Process
+
+### 1. Requirements Gathering
+
+The process of collecting information about what the database needs to store and support. This typically involves:
+
+- Calls and conversations with stakeholders (software engineers, IT staff, business analysts, product owners, etc.)
+- Preparing specific, targeted questions ahead of time (an AI tool can help brainstorm good questions to ask)
+- Recording or transcribing conversations — this lets you revisit the discussion rather than relying on memory
+- For long transcripts, generative AI can help summarize and extract the key requirements
+
+### 2. Analysis and Design
+
+**a. Identify the goals of the database**
+From the gathered requirements, determine what the database needs to achieve — what kinds of users, roles, products, or records it will manage.
+
+**b. Identify subjects, characteristics, and relationships**
+- **Subjects/Entities** — the "nouns" of the business (e.g. `User`, `Order`, `Product`)
+- **Characteristics/Attributes** — the properties those nouns have or should have (e.g. a `User` has a name, email, phone number)
+- **Relationships** — how entities relate to one another, including *cardinality* (one-to-one, one-to-many, many-to-many)
+
+### 3. Data Modeling
+
+Represent the entities, attributes, and relationships visually using an **Entity-Relationship Diagram (ERD)**. This is the blueprint before any SQL is written.
+
+### 4. Normalization
+
+The process of breaking down a table that mixes more than one entity's data into separate, well-defined tables to reduce redundancy and preventing update/insert/delete anomalies. Normalization follows a defined set of rules (**normal forms**: 1NF, 2NF, 3NF, etc.), each with formal criteria a table must satisfy (to be treated later).
+
+### 5. Implementation, Integration & Testing
+
+- Convert the E-R model into actual SQL (`CREATE TABLE` statements, constraints, indexes)
+- Validate with test data — confirm create, read, update, delete (CRUD) operations behave correctly
+- Load-test — check how the database performs under heavy read/write volume
+- Security-test — check access controls, permissions, and exposure to injection or leaks
+- Fix bugs surfaced during testing before going live
+
+---
+
+## Naming Conventions
+
+Consistency here directly supports maintainability and readability:
+
+- Use `snake_case` for table and column names (e.g. `order_items`, `created_at`)
+- Prefer singular or plural table names *consistently* across the whole schema (e.g. always `order` or always `orders`, not a mix)
+- Primary key columns are often named `id` or `<table_name>_id` (e.g. `user_id`)
+- Foreign key columns should match the name of the primary key they reference (e.g. `user_id` in `orders` referencing `user_id` in `users`)
+- Avoid reserved SQL keywords as identifiers (`order`, `group`, `select`, etc.)
+
+---
+
+## Case Study: Designing "Foodly" (a food delivery app)
+
+Now, we can design the lifecycle end-to-end for **Foodly**, a hypothetical food delivery platform.
+
+**1. Requirements Gathering**
+Interviews with the product manager and lead engineer reveal: customers browse restaurants, place orders containing multiple menu items, restaurants prepare orders, and drivers deliver them. Stakeholders want to track order status, payment, and delivery time.
+
+**2. Analysis and Design**
+- *Goal:* support customer ordering, restaurant menu management, and delivery tracking.
+- *Subjects identified:* `Customer`, `Restaurant`, `MenuItem`, `Order`, `OrderItem`, `Driver`, `Delivery`.
+- *Characteristics:* a `Customer` has a name, email, phone, address; a `MenuItem` has a name, price, restaurant it belongs to.
+- *Relationships:*
+  - A `Customer` can place many `Order`s (one-to-many).
+  - An `Order` can contain many `MenuItem`s, and a `MenuItem` can appear in many `Order`s (many-to-many).
+  - A `Driver` handles many `Delivery` records, but each `Delivery` has one `Driver` (one-to-many).
+
+**3. Data Modeling**
+An ERD is drawn showing `Customer`, `Restaurant`, `MenuItem`, `Order`, `OrderItem`, `Driver`, and `Delivery` as boxes, connected by lines representing the relationships above, annotated with cardinality (1, many).
+
+**4. Normalization**
+Initially, a single `orders` table might have stored customer name, restaurant name, and a comma-separated list of menu items directly — this mixes multiple entities together and repeats data. Normalization splits this into `customers`, `restaurants`, `menu_items`, `orders`, and `order_items` tables, each representing exactly one entity.
+
+**5. Implementation & Testing**
+```sql
+CREATE TABLE customers (
+  customer_id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE orders (
+  order_id SERIAL PRIMARY KEY,
+  customer_id INT NOT NULL REFERENCES customers(customer_id),
+  order_status VARCHAR(20) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+The team then tests: creating a customer, placing an order, updating order status, and confirms the database performs correctly under simulated peak-hour order volume before launch.
