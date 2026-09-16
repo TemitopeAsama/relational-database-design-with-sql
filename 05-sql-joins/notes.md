@@ -18,6 +18,7 @@
 | $\text{NULL}$ | Placeholder for missing values, used when a row has no match on the other side. |
 | $|X|$ | Cardinality — the number of elements (rows) in set $X$. |
 
+---
 
 ## Why Joins?
 
@@ -49,8 +50,9 @@ $$R \bowtie_{\theta} S = \sigma_{\theta}(R \times S)$$
 
 where $\sigma_\theta$ is the *selection* operator — it keeps only the pairs $(r,s)$ satisfying condition $\theta$ (here, $\theta$ is `product.product_id = reviews.product_id`).
 
-> ⚠️ This is a conceptual model, not literal execution. Real engines use indexes, hash joins, and merge joins to avoid ever materializing the full $m \times n$ product for large tables.
+**Note:** This is a conceptual model, not literal execution. Real engines use indexes, hash joins, and merge joins to avoid ever materializing the full $m \times n$ product for large tables.
 
+---
 
 ## Types of Joins
 
@@ -91,7 +93,6 @@ Returns **all rows from $V$ (Review)**, matched with rows from $P$ (Product) whe
     RIGHT JOIN reviews
       ON product.product_id = reviews.product_id;
 
-> 🔧 Correction from your original notes: RIGHT JOIN returns all rows from the **right** table (Review), plus *matching* rows from the **left** table (Product) — not "matching rows in Table 2" from Table 2 itself.
 
 ### 4. FULL OUTER JOIN
 
@@ -106,7 +107,7 @@ $$\text{FULL}(P, V) = \text{INNER}(P,V) \cup \{(p,\text{NULL}) \mid \nexists\, v
     FULL OUTER JOIN reviews
       ON product.product_id = reviews.product_id;
 
-> Note: MySQL has no native `FULL OUTER JOIN` — it's emulated as `LEFT JOIN UNION RIGHT JOIN`. PostgreSQL and SQL Server support it directly.
+**Note:** MySQL has no native `FULL OUTER JOIN` — it's emulated as `LEFT JOIN UNION RIGHT JOIN`. PostgreSQL and SQL Server support it directly.
 
 ### Comparison
 
@@ -117,6 +118,7 @@ $$\text{FULL}(P, V) = \text{INNER}(P,V) \cup \{(p,\text{NULL}) \mid \nexists\, v
 | RIGHT JOIN | INNER $\cup$ unmatched $V$ rows | All of $V$ + matches from $P$ |
 | FULL OUTER | LEFT $\cup$ RIGHT | Everything, matched where possible |
 
+---
 
 ## WHERE vs. JOIN
 
@@ -140,8 +142,9 @@ This is logically equivalent to $\sigma_\theta(P \times V)$ — the same as an `
 - **Maintainability** — explicit join logic makes it easier to spot mistakes (e.g. a missing condition silently producing the full $m \times n$ Cartesian product) and easier to extend.
 - **Expressiveness** — outer joins (LEFT, RIGHT, FULL) are only cleanly expressible with explicit `JOIN` syntax; the comma-style realistically only expresses inner joins well.
 
-> 🔧 Correction from your original notes: "JOINs are more optimized than WHERE clauses" isn't generally true on modern engines (PostgreSQL, MySQL, SQL Server) — the query optimizer typically produces the **same execution plan** for `JOIN...ON` vs. comma/`WHERE` syntax for inner joins. The durable advantage of explicit `JOIN` is readability and maintainability, not guaranteed performance.
+<!-- > 🔧 Correction from your original notes: "JOINs are more optimized than WHERE clauses" isn't generally true on modern engines (PostgreSQL, MySQL, SQL Server) — the query optimizer typically produces the **same execution plan** for `JOIN...ON` vs. comma/`WHERE` syntax for inner joins. The durable advantage of explicit `JOIN` is readability and maintainability, not guaranteed performance. -->
 
+---
 
 ## Summary
 
