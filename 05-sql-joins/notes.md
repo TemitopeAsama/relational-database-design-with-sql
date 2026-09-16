@@ -56,7 +56,7 @@ where $\sigma_\theta$ is the *selection* operator — it keeps only the pairs $(
 
 ## Types of Joins
 
-Let $P$ = Product rows, $V$ = Review rows, and let $\theta$ be the condition $P.\text{product\_id} = V.\text{product\_id}$.
+Let $P$ = Product rows, $V$ = Review rows, and let $\theta$ be the condition `product.product_id = reviews.product_id`.
 
 ### 1. INNER JOIN (same as `JOIN`)
 
@@ -142,7 +142,7 @@ This is logically equivalent to $\sigma_\theta(P \times V)$ — the same as an `
 - **Maintainability** — explicit join logic makes it easier to spot mistakes (e.g. a missing condition silently producing the full $m \times n$ Cartesian product) and easier to extend.
 - **Expressiveness** — outer joins (LEFT, RIGHT, FULL) are only cleanly expressible with explicit `JOIN` syntax; the comma-style realistically only expresses inner joins well.
 
-<!-- > 🔧 Correction from your original notes: "JOINs are more optimized than WHERE clauses" isn't generally true on modern engines (PostgreSQL, MySQL, SQL Server) — the query optimizer typically produces the **same execution plan** for `JOIN...ON` vs. comma/`WHERE` syntax for inner joins. The durable advantage of explicit `JOIN` is readability and maintainability, not guaranteed performance. -->
+<!-- >"JOINs are more optimized than WHERE clauses" isn't generally true on modern engines (PostgreSQL, MySQL, SQL Server) — the query optimizer typically produces the **same execution plan** for `JOIN...ON` vs. comma/`WHERE` syntax for inner joins. The durable advantage of explicit `JOIN` is readability and maintainability, not guaranteed performance. -->
 
 ---
 
